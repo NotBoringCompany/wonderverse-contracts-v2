@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.26;
 
-// Abstract contract containing event signatures used in Wonderchamps.
+// Abstract contract containing event signatures used in Wonderbits.
 abstract contract EventSignatures {
     /**
      * @dev Event signature for emitting a PlayerCreated event upon player creation.
@@ -12,18 +12,18 @@ abstract contract EventSignatures {
     bytes32 internal constant _PLAYER_CREATED_EVENT_SIGNATURE = 0xb4cca19a27ce42915c3cee0cee28fc5d90969ee49f09ec71659546a63b5f7bc0;
 
     /**
-     * @dev Event signature for emitting an ActionCounterIncremented event upon incrementing an action's counter.
+     * @dev Event signature for emitting a MixpanelEventCounterIncremented event upon incrementing an action's counter.
      *
-     * This event signature is obtained by: `keccak256("ActionCounterIncremented(address, bytes32)")`.
+     * This event signature is obtained by: `keccak256("MixpanelEventCounterIncremented(address, bytes32)")`.
      */
-    bytes32 internal constant _ACTION_COUNTER_INCREMENTED_EVENT_SIGNATURE = 0x69710701062b19143a27e718544ee3813499aed7bee4100ea0976297b8219c3f;
+    bytes32 internal constant _MIXPANEL_EVENT_COUNTER_INCREMENTED_EVENT_SIGNATURE = 0x89a19956bae505a698c5ddf53c1616b501ac75fcff661b77436ac917a15e3f92;
 
     /**
-     * @dev Event signature for emitting an ActionCounterUpdated event upon updating an action's counter.
+     * @dev Event signature for emitting an MixpanelEventCounterUpdated event upon updating an action's counter.
      *
-     * This event signature is obtained by: `keccak256("ActionCounterUpdated(address, bytes32, uint256)")`.
+     * This event signature is obtained by: `keccak256("MixpanelEventCounterUpdated(address, bytes32, uint256)")`.
      */
-    bytes32 internal constant _ACTION_COUNTER_UPDATED_EVENT_SIGNATURE = 0xfc85501b3fb3517563624ed50021c7fca3024b362001bf0d36f670b7d00d74ad;
+    bytes32 internal constant _MIXPANEL_EVENT_COUNTER_UPDATED_EVENT_SIGNATURE = 0x716677208892641c4024209a120da890dd40ee222d2dc6c4f17af44ab4dbaa80;
 
     /**
      * @dev Event signature for emitting a PointsUpdated event upon updating the player's points.
