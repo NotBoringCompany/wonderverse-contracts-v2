@@ -10,8 +10,9 @@ import "./points/IPoints.sol";
 import "./utils/EventSignatures.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./utils/Signatures.sol";
 
-contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEvent, IPoints, AccessControl, EventSignatures {
+contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEvent, IPoints, Signatures, EventSignatures {
     using MessageHashUtils for bytes32;
 
     // maps from the player's address to a boolean value indicating whether they've created an account.
@@ -33,36 +34,6 @@ contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEv
     modifier onlyAdmin() {
         _checkAdmin();
         _;
-    }
-
-    /**
-     * @dev Modifier that checks if the player is new.
-     */
-    modifier onlyNewPlayer(address player) {
-        _checkPlayerExists(player);
-        _;
-    }
-
-    /**
-     * @dev Creates a new player instance.
-     *
-     * The player must NOT already exist.
-     */
-    function createPlayer(address player) external virtual onlyNewPlayer(player) onlyAdmin() {
-        // create the player instance by setting the player's {hasAccount} mapping to true.
-        // NOTE:
-        // other mappings are not set here because they can be left at default values.
-        hasAccount[player] = true;
-
-        assembly {
-            // emit the PlayerCreated event.
-            log2(
-                0, // 0 offset because no additional data is appended
-                0, // 0 size because no additional data is appended
-                _PLAYER_CREATED_EVENT_SIGNATURE,
-                player
-            )
-        }
     }
 
     /**
@@ -92,8 +63,17 @@ contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEv
      */
     function incrementEventCounter(
         address player,
-        bytes32 mixpanelEvent
+        bytes32 mixpanelEvent,
+        // [0] - salt
+        // [1] - adminSig
+        bytes[2] calldata sigData
     ) external onlyAdmin() {
+        // ensure that the signature is valid (i.e. the recovered address is the player's address)
+        _checkAdminSignatureValid(
+            MessageHashUtils.toEthSignedMessageHash(dataHash(player, sigData[0])),
+            sigData[1]
+        );
+
         // increment the event counter by 1.
         unchecked {
             mixpanelEventCounter[player][mixpanelEvent]++;
@@ -120,8 +100,17 @@ contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEv
     function updateEventCounter(
         address player, 
         bytes32 mixpanelEvent, 
-        uint256 newCounter
+        uint256 newCounter,
+        // [0] - salt
+        // [1] - adminSig
+        bytes[2] calldata sigData
     ) external onlyAdmin() {
+        // ensure that the signature is valid (i.e. the recovered address is the player's address)
+        _checkAdminSignatureValid(
+            MessageHashUtils.toEthSignedMessageHash(dataHash(player, sigData[0])),
+            sigData[1]
+        );
+
         // update the event counter to the new value.
         mixpanelEventCounter[player][mixpanelEvent] = newCounter;
 
@@ -143,8 +132,17 @@ contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEv
      */
     function updatePoints(
         address player,
-        uint256 _points
+        uint256 _points,
+        // [0] - salt
+        // [1] - adminSig
+        bytes[2] calldata sigData
     ) external onlyAdmin() {
+        // ensure that the signature is valid (i.e. the recovered address is the player's address)
+        _checkAdminSignatureValid(
+            MessageHashUtils.toEthSignedMessageHash(dataHash(player, sigData[0])),
+            sigData[1]
+        );
+        
         // update the player's points to the new value.
         points[player] = _points;
 
@@ -168,20 +166,18 @@ contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEv
     }
 
     /**
+     * @dev Fetches the data hash for any signature-related operation given a specific {salt}.
+     */
+    function dataHash(address player, bytes calldata salt) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(player, salt));
+    }
+
+    /**
      * @dev Checks if the caller is an admin and reverts if not.
      */
     function _checkAdmin() private view {
         if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
             revert NotAdmin();
-        }
-    }
-
-    /**
-     * @dev Checks whether a player exists.
-     */
-    function _checkPlayerExists(address player) private view {
-        if (playerExists(player)) {
-            revert PlayerAlreadyExists();
         }
     }
 }

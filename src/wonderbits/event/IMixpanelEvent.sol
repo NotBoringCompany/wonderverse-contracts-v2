@@ -8,11 +8,17 @@ pragma solidity ^0.8.26;
 interface IMixpanelEvent {
     function incrementEventCounter(
         address player, 
-        bytes32 mixpanelEvent
+        bytes32 mixpanelEvent,
+        // [0] - salt
+        // [1] - adminSig
+        bytes[2] calldata sigData
     ) external;
     function updateEventCounter(
         address player, 
         bytes32 mixpanelEvent, 
-        uint256 newCounter
+        uint256 newCounter,
+        // [0] - salt
+        // [1] - adminSig
+        bytes[2] calldata sigData
     ) external;
 }

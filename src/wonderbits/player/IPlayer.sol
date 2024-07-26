@@ -7,5 +7,4 @@ pragma solidity ^0.8.26;
  */
 interface IPlayer {
     function getPlayer(address player, bytes32[] calldata mixpanelEvents) external view returns (uint256 _points, uint256[] memory mixpanelEventCounters);
-    function createPlayer(address player) external;
 }
