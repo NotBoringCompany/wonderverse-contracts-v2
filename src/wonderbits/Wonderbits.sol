@@ -29,14 +29,6 @@ contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEv
     }
 
     /**
-     * @dev Modifier that checks if the caller is an admin and reverts if not.
-     */
-    modifier onlyAdmin() {
-        _checkAdmin();
-        _;
-    }
-
-    /**
      * @dev Fetches the player data instance.
      *
      * Given the player's address and an array of events, returns the player's points and the amount of times each event has been done.
@@ -67,7 +59,7 @@ contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEv
         // [0] - salt
         // [1] - adminSig
         bytes[2] calldata sigData
-    ) external onlyAdmin() {
+    ) external {
         // ensure that the signature is valid (i.e. the recovered address is the player's address)
         _checkAdminSignatureValid(
             MessageHashUtils.toEthSignedMessageHash(dataHash(player, sigData[0])),
@@ -104,7 +96,7 @@ contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEv
         // [0] - salt
         // [1] - adminSig
         bytes[2] calldata sigData
-    ) external onlyAdmin() {
+    ) external {
         // ensure that the signature is valid (i.e. the recovered address is the player's address)
         _checkAdminSignatureValid(
             MessageHashUtils.toEthSignedMessageHash(dataHash(player, sigData[0])),
@@ -136,7 +128,7 @@ contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEv
         // [0] - salt
         // [1] - adminSig
         bytes[2] calldata sigData
-    ) external onlyAdmin() {
+    ) external {
         // ensure that the signature is valid (i.e. the recovered address is the player's address)
         _checkAdminSignatureValid(
             MessageHashUtils.toEthSignedMessageHash(dataHash(player, sigData[0])),
@@ -170,14 +162,5 @@ contract Wonderbits is IPlayer, IPlayerErrors, IAccessControlErrors, IMixpanelEv
      */
     function dataHash(address player, bytes calldata salt) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(player, salt));
-    }
-
-    /**
-     * @dev Checks if the caller is an admin and reverts if not.
-     */
-    function _checkAdmin() private view {
-        if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
-            revert NotAdmin();
-        }
     }
 }
