@@ -6,7 +6,7 @@ import "./interfaces/IPaymentProcessor.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./utils/IAccessControlErrors.sol";
 import "./interfaces/IPaymentProcessorErrors.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract WonderbitsPaymentProcessor is IPaymentProcessor, AccessControl, ReentrancyGuard, IAccessControlErrors, IPaymentProcessorErrors {
     // maps from a token's contract address to a boolean indicating if they're accepted as a payment method.
