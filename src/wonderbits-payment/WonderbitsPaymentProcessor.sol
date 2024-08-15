@@ -38,6 +38,11 @@ contract WonderbitsPaymentProcessor is IPaymentProcessor, AccessControl, Reentra
         _;
     }
 
+    modifier onlyPurchaserOrAdmin(address purchaser) {
+        _checkPurchaserOrAdmin(purchaser);
+        _;
+    }
+
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
@@ -102,6 +107,15 @@ contract WonderbitsPaymentProcessor is IPaymentProcessor, AccessControl, Reentra
     }
 
     /**
+     * @dev Fetches the payment details of a payment.
+     *
+     * Only callable by the purchaser or an admin.
+     */
+    function getPaymentDetails(address purchaser, uint256 paymentId) external view onlyPurchaserOrAdmin(purchaser) returns (PaymentDetails memory) {
+        return _payments[purchaser][paymentId];
+    }
+
+    /**
      * @dev Adds one or multiple payment tokens that are accepted by the payment processor.
      */
     function addPaymentTokens(address[] calldata tokens) external onlyAdmin {
@@ -128,6 +142,27 @@ contract WonderbitsPaymentProcessor is IPaymentProcessor, AccessControl, Reentra
     }
 
     /**
+     * @dev Withdraws either ERC20 tokens or native tokens from the payment processor to a specified address {to}.
+     *
+     * @param token The token to withdraw's contract address. Pass address(0) to withdraw native tokens.
+     * @param to The address to withdraw the tokens to.
+     */
+    function withdraw(address token, address to) external nonReentrant onlyAdmin {
+        // the {to} address MUST be non-zero, else throw
+        if (to == address(0)) {
+            revert InvalidWithdrawalAddress();
+        }
+
+        // withdraw native token
+        if (token == address(0)) {
+            payable(to).transfer(address(this).balance);
+        // withdraw specific ERC20 token
+        } else {
+            IERC20(token).transfer(to, IERC20(token).balanceOf(address(this)));
+        }
+    }
+
+    /**
      * @dev Checks whether the token is accepted by the payment processor.
      */
     function paymentTokenAccepted(address token) external view returns (bool) {
@@ -150,6 +185,15 @@ contract WonderbitsPaymentProcessor is IPaymentProcessor, AccessControl, Reentra
         IERC20 tokenContract = IERC20(token);
         if (tokenContract.allowance(_msgSender(), address(this)) < amount) {
             revert InsufficientAllowance();
+        }
+    }
+
+    /**
+     * @dev Checks whether the caller is the purchaser of the payment details being fetched or an admin.
+     */
+    function _checkPurchaserOrAdmin(address purchaser) internal view {
+        if (purchaser != _msgSender() && !hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
+            revert NotPurchaser();
         }
     }
 

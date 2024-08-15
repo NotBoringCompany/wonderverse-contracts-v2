@@ -20,4 +20,19 @@ interface IPaymentProcessorErrors {
      * @dev Throws if the user has not allowed enough amount of `token`s to be spent by the payment processor.
      */
     error InsufficientAllowance();
+
+    /**
+     * @dev Throws if the caller is not the purchaser.
+     */
+    error NotPurchaser();
+
+    /**
+     * @dev Throws if the {to} address upon withdrawing tokens is the zero address.
+     */
+    error InvalidWithdrawalAddress();
+
+    /**
+     * @dev Throws if the balance of the token to be withdrawn is zero.
+     */
+    error ZeroBalance();
 }
