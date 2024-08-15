@@ -6,10 +6,13 @@ import "./interfaces/IPaymentProcessor.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./utils/IAccessControlErrors.sol";
 import "./interfaces/IPaymentProcessorErrors.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract WonderbitsPaymentProcessor is IPaymentProcessor, AccessControl, IAccessControlErrors, IPaymentProcessorErrors {
+contract WonderbitsPaymentProcessor is IPaymentProcessor, AccessControl, ReentrancyGuard, IAccessControlErrors, IPaymentProcessorErrors {
     // maps from a token's contract address to a boolean indicating if they're accepted as a payment method.
     mapping (address => bool) internal _acceptedPaymentTokens;
+    // maps from a user's wallet address to a payment id to the payment details of that payment.
+    mapping (address => mapping (uint256 => PaymentDetails)) internal _payments;
 
     /**
      * @dev Throws if the caller is not an admin.
@@ -31,6 +34,15 @@ contract WonderbitsPaymentProcessor is IPaymentProcessor, AccessControl, IAccess
 
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
+    }
+
+    /**
+     * @dev (User) Executes a payment for a package.
+     *
+     * NOTE: {package} and {price} MUST be accurate, else it may lead to a lost purchase.
+     */
+    function pay(bytes32 package, uint256 price, address token) external nonReentrant {
+
     }
 
     /**
