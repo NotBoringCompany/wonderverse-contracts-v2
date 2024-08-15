@@ -30,9 +30,4 @@ interface IPaymentProcessorErrors {
      * @dev Throws if the {to} address upon withdrawing tokens is the zero address.
      */
     error InvalidWithdrawalAddress();
-
-    /**
-     * @dev Throws if the balance of the token to be withdrawn is zero.
-     */
-    error ZeroBalance();
 }
