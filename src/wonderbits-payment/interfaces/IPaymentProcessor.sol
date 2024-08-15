@@ -13,8 +13,8 @@ interface IPaymentProcessor {
         // a unique payment id used to identify the payment
         uint256 paymentId;
         // [0] - the purchaser's wallet address
-        // [1] - the payment method's contract address (e.g. USDT's contract address)
-        address[2] addrData;
+        // [1] - the payment token's contract address (e.g. USDT's contract address)
+        address[2] addrs;
         // the purchased package in bytes32 format
         bytes32 package;
         // the package's price/cost
