@@ -47,11 +47,30 @@ abstract contract NFTBase is ERC721AQueryable, ERC721ABurnable, Signatures {
         _safeMint(to, 1);
     }
 
+    /**
+     * @dev Sets the base URI for all tokens.
+     */
+    function setBaseURI(string calldata uri) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setBaseURI(uri);
+    }
+
         /**
      * @dev Fetches the bytes32 hash for operations.
      */
     function opHash(address addr, bytes calldata salt) public pure returns (bytes32) {
         return keccak256(abi.encodePacked(addr, salt));
+    }
+
+    /**
+     * @dev See {ERC721A-tokenURI}.
+     * 
+     * Overridden to return a JSON file with the token ID.
+     */
+    function tokenURI(uint256 tokenId) public view virtual override(ERC721A, IERC721A) returns (string memory) {
+        if (!_exists(tokenId)) _revert(URIQueryForNonexistentToken.selector);
+
+        string memory baseURI = _baseURI();
+        return bytes(baseURI).length != 0 ? string(abi.encodePacked(baseURI, _toString(tokenId), ".json")) : '';
     }
 
     /**
