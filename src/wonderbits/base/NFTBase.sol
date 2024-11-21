@@ -27,13 +27,6 @@ abstract contract NFTBase is ERC721AQueryable, ERC721ABurnable, Signatures {
         return _getAux(_owner);
     }
 
-    /**
-     * @dev Fetches the bytes32 hash for operations.
-     */
-    function opHash(address addr, bytes calldata salt) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(addr, salt));
-    }
-
      /**
      * @dev Mints a new Bit into existence.
      * 
@@ -51,8 +44,14 @@ abstract contract NFTBase is ERC721AQueryable, ERC721ABurnable, Signatures {
             sigData[1]
         );
 
-
         _safeMint(to, 1);
+    }
+
+        /**
+     * @dev Fetches the bytes32 hash for operations.
+     */
+    function opHash(address addr, bytes calldata salt) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(addr, salt));
     }
 
     /**
