@@ -4,7 +4,7 @@ pragma solidity ^0.8.26;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "./ISignatureErrors.sol";
+import "../errors/ISignatureErrors.sol";
 
 /**
  * @dev Abstract contract containing ECDSA/signature-related operations.

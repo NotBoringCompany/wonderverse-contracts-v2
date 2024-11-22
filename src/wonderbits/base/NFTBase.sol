@@ -5,13 +5,54 @@ pragma solidity ^0.8.26;
 import "@ERC721A/contracts/extensions/ERC721AQueryable.sol";
 import "@ERC721A/contracts/extensions/ERC721ABurnable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import "@openzeppelin/contracts/interfaces/IERC20.sol";
 import "../utils/Signatures.sol";
+import "../utils/Hashes.sol";
 
 /**
  * @dev Base NFT contract which also extends the ERC721A standard.
  */
 abstract contract NFTBase is ERC721AQueryable, ERC721ABurnable, Signatures {
     using MessageHashUtils for bytes32;
+
+    /**
+     * @dev Stores a mutable base URI for all tokens.
+     */
+    string private baseURI_;
+
+    /**
+     * @dev Mints a new NFT to {to}.
+     * 
+     * Requires the admin's signature to mint.
+     */
+    function mint(
+        address to,
+        // [0] - salt
+        // [1] - adminSig
+        bytes[2] calldata sigData
+    ) external virtual {
+        // ensure that the admin's signature is valid
+        _checkAdminSignatureValid(
+            MessageHashUtils.toEthSignedMessageHash(Hashes.opHash(to, sigData[0])),
+            sigData[1]
+        );
+
+        _safeMint(to, 1);
+    }
+
+    /**
+     * @dev Sets the {_baseURI}.
+     */
+    function setBaseURI(string calldata uri) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+        baseURI_ = uri;
+    }
+
+    /**
+     * @dev Overrides {ERC721A-_baseURI} to return the base URI from {_baseURI} instead.
+     */
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseURI_;
+    }
 
     /**
      * @dev Fetches the total number of tokens burned by everyone.
@@ -27,40 +68,6 @@ abstract contract NFTBase is ERC721AQueryable, ERC721ABurnable, Signatures {
         return _getAux(_owner);
     }
 
-     /**
-     * @dev Mints a new Bit into existence.
-     * 
-     * Requires the admin's signature to mint.
-     */
-    function mint(
-        address to,
-        // [0] - salt
-        // [1] - adminSig
-        bytes[2] calldata sigData
-    ) external virtual {
-        // ensure that the admin's signature is valid
-        _checkAdminSignatureValid(
-            MessageHashUtils.toEthSignedMessageHash(opHash(to, sigData[0])),
-            sigData[1]
-        );
-
-        _safeMint(to, 1);
-    }
-
-    /**
-     * @dev Sets the base URI for all tokens.
-     */
-    function setBaseURI(string calldata uri) external virtual onlyRole(DEFAULT_ADMIN_ROLE) {
-        _setBaseURI(uri);
-    }
-
-        /**
-     * @dev Fetches the bytes32 hash for operations.
-     */
-    function opHash(address addr, bytes calldata salt) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(addr, salt));
-    }
-
     /**
      * @dev See {ERC721A-tokenURI}.
      * 
@@ -74,9 +81,33 @@ abstract contract NFTBase is ERC721AQueryable, ERC721ABurnable, Signatures {
     }
 
     /**
-     * @dev Overrides supportsInterface to resolve conflict between ERC721A and AccessControl.
+     * @dev Consolidated {supportsInterface} to handle multiple inheritance.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721A, IERC721A, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
+
+    /********* WITHDRAWALS*************** */
+
+    /**
+     * @dev Withdraws balance from this contract to admin. 
+     * NOTE: Please do NOT send unnecessary funds to this contract.
+     * This is used as a mechanism to transfer any balance that this contract has to admin.
+     * We will NOT be responsible for any funds transferred accidentally.
+     */ 
+    function withdrawFunds() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        payable(_msgSender()).transfer(address(this).balance);
+    }
+    /**
+     * @dev Withdraws tokens from this contract to admin.
+     * NOTE: Please do NOT send unnecessary tokens to this contract.
+     * This is used as a mechanism to transfer any tokens that this contract has to admin.
+     * We will NOT be responsible for any tokens transferred accidentally.
+     */
+    function withdrawTokens(address _tokenAddr, uint256 _amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        IERC20 _token = IERC20(_tokenAddr);
+        _token.transfer(_msgSender(), _amount);
+    }
+
+    /**************************************** */
 }
